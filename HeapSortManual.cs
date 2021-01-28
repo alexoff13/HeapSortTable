@@ -6,9 +6,10 @@ namespace HeapSortManual
 {
     public class HeapSortManual
     {
-        private int _columns = 1;
+        private int _columns = 2;
+        private bool _columnsHeap = false;
 
-        private void Heapify(ref long[] arr, int n, int i, ref int numberOfComparisons, ref int numberOfExchanges,
+        private void Heapify(ref double[] arr, int n, int i, ref int numberOfComparisons, ref int numberOfExchanges,
             ExcelWorksheet sheet)
         {
             var comparisons = numberOfComparisons;
@@ -22,7 +23,7 @@ namespace HeapSortManual
             if (l >= n && r >= n) return;
 
             _columns++;
-
+            
             if (l < n)
             {
                 numberOfComparisons += 1;
@@ -46,32 +47,46 @@ namespace HeapSortManual
 
             if (r < n && arr[r] > arr[largest]) largest = r;
 
-            sheet.Cells[column, arr.Length + 1].Value = numberOfComparisons - comparisons;
-            sheet.Cells[column, arr.Length + 2].Value = numberOfExchanges - exchanges;
+            if (!_columnsHeap)
+            {
+                sheet.Cells[column, arr.Length + 1].Value = numberOfComparisons - comparisons;
+                sheet.Cells[column, arr.Length + 2].Value = numberOfExchanges - exchanges;
+            }
+            else
+            {
+                sheet.Cells[column, arr.Length + 1].Value = numberOfComparisons - comparisons;
+                sheet.Cells[column, arr.Length + 2].Value = (numberOfExchanges - exchanges) ;
+            }
 
             if (largest != i)
             {
                 numberOfExchanges++;
-                sheet.Cells[column, arr.Length + 2].Value = numberOfExchanges - exchanges;
+                if (!_columnsHeap)
+                    sheet.Cells[column, arr.Length + 2].Value = numberOfExchanges - exchanges;
+                else
+                    sheet.Cells[column, arr.Length + 2].Value = numberOfExchanges - exchanges + 1;
+                
                 (arr[i], arr[largest]) = (arr[largest], arr[i]);
-
+                
                 Heapify(ref arr, n, largest, ref numberOfComparisons, ref numberOfExchanges, sheet);
             }
         }
 
-        public byte[] HeapSort(long[] arr, int n)
+        public byte[] HeapSort(double[] arr, int n)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var package = new ExcelPackage();
             var sheet = package.Workbook.Worksheets
                 .Add("HeapSort");
-
+        
             int numberOfComparisons = 0, numberOfExchanges = 0;
 
             // Build max heap
             for (var i = n / 2 - 1; i >= 0; i--)
                 Heapify(ref arr, n, i, ref numberOfComparisons, ref numberOfExchanges, sheet);
-
+            _columnsHeap = true;
+            
+            
             // Heap sort
             for (var i = n - 1; i >= 0; i--)
             {
